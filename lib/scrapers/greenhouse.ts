@@ -1,4 +1,4 @@
-import { fetchJson, matchesFilter, withRetry } from './_http';
+import { fetchJson, matchesTitleFilter, withRetry } from './_http';
 
 export interface ScraperConfig {
   company: string;
@@ -39,7 +39,7 @@ export async function scrapeGreenhouse(config: ScraperConfig): Promise<RawJob[]>
   const jobs: RawJob[] = [];
 
   for (const j of data.jobs) {
-    if (config.titleFilter && !matchesFilter(j.title, config.titleFilter)) continue;
+    if (!matchesTitleFilter(j.title, config.titleFilter)) continue;
 
     const locationName: string = j.location?.name ?? '';
     const isRemote = /remote/i.test(locationName);

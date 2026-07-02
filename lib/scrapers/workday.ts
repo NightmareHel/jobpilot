@@ -1,4 +1,4 @@
-import { fetchJson, matchesFilter, withRetry } from './_http';
+import { fetchJson, matchesTitleFilter, withRetry } from './_http';
 import type { RawJob } from './greenhouse';
 
 export interface WorkdayConfig {
@@ -43,7 +43,7 @@ export async function scrapeWorkday(config: WorkdayConfig): Promise<RawJob[]> {
     if (postings.length === 0) break;
 
     for (const j of postings) {
-      if (config.titleFilter && !matchesFilter(j.title, config.titleFilter)) continue;
+      if (!matchesTitleFilter(j.title, config.titleFilter)) continue;
 
       const locationName = j.locationsText ?? '';
       const isRemote = /remote/i.test(locationName);

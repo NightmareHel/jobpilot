@@ -1,4 +1,4 @@
-import { fetchJson, matchesFilter, withRetry } from './_http';
+import { fetchJson, matchesTitleFilter, withRetry } from './_http';
 import type { RawJob, ScraperConfig } from './greenhouse';
 
 interface AshbyJob {
@@ -25,7 +25,7 @@ export async function scrapeAshby(config: ScraperConfig & { slug: string }): Pro
   const jobs: RawJob[] = [];
 
   for (const j of rawJobs) {
-    if (config.titleFilter && !matchesFilter(j.title, config.titleFilter)) continue;
+    if (!matchesTitleFilter(j.title, config.titleFilter)) continue;
 
     const locationName = j.locationName ?? '';
     const isRemote = j.isRemote ?? /remote/i.test(locationName);

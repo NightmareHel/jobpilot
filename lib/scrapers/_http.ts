@@ -40,6 +40,20 @@ export function matchesFilter(value: string, filters?: string[]): boolean {
   return filters.some((f) => lower.includes(f.toLowerCase()));
 }
 
+// Seniority terms that disqualify a job title for a new grad search
+const TITLE_EXCLUDES = [
+  'senior', 'sr.', 'staff', 'principal', 'lead', 'manager',
+  'director', 'head', 'vp', 'vice president', 'architect',
+  'distinguished', 'intern', 'co-op',
+];
+
+// Use this instead of matchesFilter for title checks — applies seniority exclusion first
+export function matchesTitleFilter(title: string, includes?: string[]): boolean {
+  const lower = title.toLowerCase();
+  if (TITLE_EXCLUDES.some((e) => lower.includes(e))) return false;
+  return matchesFilter(title, includes);
+}
+
 // Exponential backoff with jitter. Respects Retry-After header on 429s.
 export async function withRetry<T>(
   fn: () => Promise<T>,

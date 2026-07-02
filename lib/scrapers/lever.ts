@@ -1,4 +1,4 @@
-import { fetchJson, matchesFilter, withRetry } from './_http';
+import { fetchJson, matchesTitleFilter, withRetry } from './_http';
 import type { RawJob, ScraperConfig } from './greenhouse';
 
 interface LeverJob {
@@ -25,7 +25,7 @@ export async function scrapeLever(config: ScraperConfig & { slug: string }): Pro
     if (!Array.isArray(page) || page.length === 0) break;
 
     for (const j of page) {
-      if (config.titleFilter && !matchesFilter(j.text, config.titleFilter)) continue;
+      if (!matchesTitleFilter(j.text, config.titleFilter)) continue;
 
       const locationName = j.categories?.location ?? '';
       const isRemote = /remote/i.test(locationName);
