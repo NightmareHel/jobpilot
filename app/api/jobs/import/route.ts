@@ -60,8 +60,9 @@ export async function POST(req: NextRequest) {
   let description: string | null = null;
   let fetchError: string | null = null;
 
-  const browser = await chromium.launch({ headless: true });
+  let browser = null;
   try {
+    browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 });
 
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     fetchError = err instanceof Error ? err.message : String(err);
   } finally {
-    await browser.close();
+    if (browser) await browser.close();
   }
 
   if (fetchError) {
@@ -108,5 +109,8 @@ export async function POST(req: NextRequest) {
   }
 
   const [job] = await db.select().from(jobs).where(eq(jobs.id, id));
+  if (!job) {
+    return NextResponse.json({ error: 'Job was not saved — check server logs' }, { status: 500 });
+  }
   return NextResponse.json({ job });
 }
