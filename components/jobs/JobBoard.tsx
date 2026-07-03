@@ -45,6 +45,7 @@ export default function JobBoard({ onTailor }: Props) {
   const loadJobs = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
+    params.set('excludeCustom', 'true');
     if (filters.source)         params.set('source', filters.source);
     if (filters.status)         params.set('status', filters.status);
     if (filters.minScore > 0)   params.set('minScore', String(filters.minScore));

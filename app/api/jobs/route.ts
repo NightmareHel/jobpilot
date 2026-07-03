@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { jobs } from '@/lib/schema';
-import { eq, and, gte, like, or, desc, asc, count, isNotNull } from 'drizzle-orm';
+import { eq, and, gte, like, or, desc, asc, count, isNotNull, ne } from 'drizzle-orm';
 
 export async function GET(req: NextRequest) {
   const db = getDb();
   const { searchParams } = req.nextUrl;
 
-  const source   = searchParams.get('source');
-  const status   = searchParams.get('status');
-  const minScore = searchParams.get('minScore');
-  const search   = searchParams.get('search');
-  const sort     = searchParams.get('sort') ?? 'scraped_at';
-  const page     = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
-  const limit    = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10)));
-  const offset   = (page - 1) * limit;
+  const source        = searchParams.get('source');
+  const status        = searchParams.get('status');
+  const minScore      = searchParams.get('minScore');
+  const search        = searchParams.get('search');
+  const sort          = searchParams.get('sort') ?? 'scraped_at';
+  const excludeCustom = searchParams.get('excludeCustom') === 'true';
+  const page          = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+  const limit         = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10)));
+  const offset        = (page - 1) * limit;
 
   const filters = [];
-  if (source)   filters.push(eq(jobs.source, source));
+  if (source)        filters.push(eq(jobs.source, source));
+  if (excludeCustom) filters.push(ne(jobs.source, 'custom'));
   if (status)   filters.push(eq(jobs.status, status));
   if (minScore) filters.push(gte(jobs.fit_score, parseFloat(minScore)));
   if (search) {

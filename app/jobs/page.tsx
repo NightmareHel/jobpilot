@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import JobBoard from '@/components/jobs/JobBoard';
+import ManualJobsSection from '@/components/jobs/ManualJobsSection';
 import { useToast } from '@/lib/toast';
 
 
@@ -21,7 +22,9 @@ export default function JobsPage() {
 
   return (
     <main className="min-h-screen bg-zinc-900">
-      <div className="p-6">
+      <div className="p-6 flex flex-col gap-10">
+        <ManualJobsSection onTailor={handleTailor} />
+        <hr className="border-zinc-700" />
         <JobBoard onTailor={handleTailor} />
       </div>
     </main>
