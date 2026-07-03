@@ -8,7 +8,7 @@
       "locationFilter": ["new york", "new jersey", "philadelphia", "boston"]
     },
     {
-      "source": "greenhouse",
+      "source": "ashby",
       "company": "OpenAI",
       "slug": "openai",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
@@ -17,7 +17,7 @@
     {
       "source": "ashby",
       "company": "Perplexity",
-      "slug": "perplexity-ai",
+      "slug": "perplexity",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
       "locationFilter": ["new york", "new jersey", "philadelphia", "boston"]
     },
@@ -30,20 +30,20 @@
     },
     {
       "source": "greenhouse",
-      "company": "Weights & Biases",
-      "slug": "wandb",
+      "company": "CoreWeave",
+      "slug": "coreweave",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
       "locationFilter": ["new york", "new jersey", "philadelphia", "boston"]
     },
     {
-      "source": "lever",
+      "source": "ashby",
       "company": "Cohere",
       "slug": "cohere",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
       "locationFilter": ["new york", "new jersey", "philadelphia", "boston"]
     },
     {
-      "source": "lever",
+      "source": "greenhouse",
       "company": "Scale AI",
       "slug": "scaleai",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
@@ -51,13 +51,6 @@
     },
     {
       "source": "lever",
-      "company": "Hugging Face",
-      "slug": "huggingface",
-      "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
-      "locationFilter": ["new york", "new jersey", "philadelphia", "boston"]
-    },
-    {
-      "source": "greenhouse",
       "company": "Palantir",
       "slug": "palantir",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack", "analyst"],
@@ -71,7 +64,7 @@
       "locationFilter": ["new york", "new jersey", "philadelphia", "boston"]
     },
     {
-      "source": "greenhouse",
+      "source": "ashby",
       "company": "Snowflake",
       "slug": "snowflake",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
@@ -92,9 +85,9 @@
       "locationFilter": ["new york", "new jersey", "philadelphia", "boston"]
     },
     {
-      "source": "greenhouse",
+      "source": "ashby",
       "company": "Ramp",
-      "slug": "rampfinancial",
+      "slug": "ramp",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
       "locationFilter": ["new york", "new jersey", "philadelphia", "boston"]
     },
@@ -113,7 +106,7 @@
       "locationFilter": ["new york", "new jersey", "philadelphia", "boston"]
     },
     {
-      "source": "greenhouse",
+      "source": "ashby",
       "company": "Notion",
       "slug": "notion",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
@@ -127,7 +120,7 @@
       "locationFilter": ["new york", "new jersey", "philadelphia", "pittsburgh", "boston"]
     },
     {
-      "source": "greenhouse",
+      "source": "ashby",
       "company": "Benchling",
       "slug": "benchling",
       "titleFilter": ["engineer", "developer", "software", "ai", "ml", "scientist", "backend", "fullstack"],
