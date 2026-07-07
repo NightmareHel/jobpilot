@@ -6,13 +6,14 @@ export interface WorkdayConfig {
   tenant: string;
   titleFilter?: string[];
   locationFilter?: string[];
+  searchText?: string; // server-side narrowing; huge tenants time out without it
 }
 
 interface WDJob {
-  id: string;
+  id?: string; // not present in CXS list responses
   title: string;
   locationsText?: string;
-  bulletFields?: string[];
+  bulletFields?: string[]; // [0] is usually the requisition ID (e.g. "R123456")
   externalPath?: string;
   postedOn?: string;
 }
@@ -23,13 +24,19 @@ interface WDResponse {
 }
 
 export async function scrapeWorkday(config: WorkdayConfig): Promise<RawJob[]> {
-  const baseUrl = `https://${config.tenant}.wd5.myworkdayjobs.com/wday/cxs/${config.tenant}/External/jobs`;
+  // tenant accepts "acme" (legacy, assumes wd5 + External site) or the full
+  // "acme.wd12/Acme_Careers" form since instance host and site name vary.
+  const [hostPart, site = 'External'] = config.tenant.split('/');
+  const [tenant, wd = 'wd5'] = hostPart.split('.');
+  const host = `https://${tenant}.${wd}.myworkdayjobs.com`;
+  const baseUrl = `${host}/wday/cxs/${tenant}/${site}/jobs`;
   const jobs: RawJob[] = [];
   let offset = 0;
-  const limit = 20;
+  const limit = 20; // CXS rejects anything above 20 with a 400
+  const maxOffset = 1000; // cap giant tenants (NVIDIA "engineer" alone is 2000+)
 
-  while (true) {
-    const body = JSON.stringify({ limit, offset, searchText: '' });
+  while (offset < maxOffset) {
+    const body = JSON.stringify({ appliedFacets: {}, limit, offset, searchText: config.searchText ?? '' });
 
     const data = await withRetry(() =>
       fetchJson<WDResponse>(baseUrl, {
@@ -55,13 +62,14 @@ export async function scrapeWorkday(config: WorkdayConfig): Promise<RawJob[]> {
         if (!locOk) continue;
       }
 
-      const jobUrl = j.externalPath
-        ? `https://${config.tenant}.wd5.myworkdayjobs.com${j.externalPath}`
-        : `https://${config.tenant}.wd5.myworkdayjobs.com/External`;
+      const jobUrl = j.externalPath ? `${host}${j.externalPath}` : `${host}/${site}`;
+
+      const externalId = j.id ?? j.bulletFields?.[0] ?? j.externalPath;
+      if (!externalId) continue;
 
       jobs.push({
         source:      'workday',
-        external_id: j.id,
+        external_id: `${tenant}-${externalId}`,
         title:       j.title,
         company:     config.company,
         location:    locationName || null,

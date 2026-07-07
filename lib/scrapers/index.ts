@@ -6,16 +6,22 @@ import { scrapeGreenhouse } from './greenhouse';
 import { scrapeLever } from './lever';
 import { scrapeAshby } from './ashby';
 import { scrapeWorkday } from './workday';
+import { scrapeSimplify } from './simplify';
+import { scrapeWorkable } from './workable';
+import { scrapeTheMuse } from './themuse';
+import { scrapeSmartRecruiters } from './smartrecruiters';
 import type { RawJob } from './greenhouse';
 import { classifyJob } from '../classify-job';
+import { isNonUsLocation } from './_http';
 
 export interface ScraperTarget {
-  source: 'greenhouse' | 'lever' | 'ashby' | 'workday';
+  source: 'greenhouse' | 'lever' | 'ashby' | 'workday' | 'simplify' | 'workable' | 'themuse' | 'smartrecruiters';
   company: string;
   slug?: string;
   tenant?: string;
   titleFilter?: string[];
   locationFilter?: string[];
+  searchText?: string; // workday only: server-side query for huge tenants
 }
 
 export interface ScrapeConfig {
@@ -56,7 +62,21 @@ export async function scrapeAll(config: ScrapeConfig, existingRunId?: string): P
           } else if (target.source === 'ashby' && target.slug) {
             results = await scrapeAshby({ company: target.company, slug: target.slug, titleFilter: target.titleFilter, locationFilter: target.locationFilter });
           } else if (target.source === 'workday' && target.tenant) {
-            results = await scrapeWorkday({ company: target.company, tenant: target.tenant, titleFilter: target.titleFilter, locationFilter: target.locationFilter });
+            results = await scrapeWorkday({ company: target.company, tenant: target.tenant, titleFilter: target.titleFilter, locationFilter: target.locationFilter, searchText: target.searchText });
+          } else if (target.source === 'simplify') {
+            results = await scrapeSimplify();
+          } else if (target.source === 'workable' && target.slug) {
+            results = await scrapeWorkable({ company: target.company, slug: target.slug, titleFilter: target.titleFilter, locationFilter: target.locationFilter });
+          } else if (target.source === 'themuse') {
+            results = await scrapeTheMuse();
+          } else if (target.source === 'smartrecruiters' && target.slug) {
+            results = await scrapeSmartRecruiters({ company: target.company, slug: target.slug, titleFilter: target.titleFilter, locationFilter: target.locationFilter });
+          }
+
+          // Empty boards return HTTP 200 on Lever/Ashby/SmartRecruiters, so
+          // health is count-based: zero results means a dead/renamed target.
+          if (results.length === 0) {
+            console.warn(`[scraper] HEALTH: 0 jobs from ${target.source}/${target.company} — slug may be dead`);
           }
 
           allResults.push(...results);
@@ -66,13 +86,26 @@ export async function scrapeAll(config: ScrapeConfig, existingRunId?: string): P
       })
     );
 
-    jobsFound = allResults.length;
+    const usResults = allResults.filter((j) => !isNonUsLocation(j.location));
+    jobsFound = usResults.length;
 
     const scraped_at = new Date().toISOString();
 
-    for (const job of allResults) {
+    for (const job of usResults) {
       const id = jobId(job.source, job.external_id);
       const cls = await classifyJob(job.title, job.company, job.description);
+
+      // Source hints override the classifier, except nothing un-blocks a
+      // JD-text hard block.
+      if (job.hints?.sponsor === 'blocked') {
+        cls.sponsor_status = 'blocked';
+        cls.sponsor_evidence = cls.sponsor_evidence ?? 'Source: does not offer sponsorship';
+      } else if (job.hints?.sponsor === 'confirmed' && cls.sponsor_status !== 'blocked') {
+        cls.sponsor_status = 'confirmed';
+        cls.sponsor_evidence = cls.sponsor_evidence ?? 'Source: offers sponsorship';
+      }
+      if (job.hints?.entry && cls.entry_level === null) cls.entry_level = 1;
+
       try {
         await db.insert(jobs).values({
           id,

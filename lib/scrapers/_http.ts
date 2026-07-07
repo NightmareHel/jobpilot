@@ -54,6 +54,18 @@ export function matchesTitleFilter(title: string, includes?: string[]): boolean 
   return matchesFilter(title, includes);
 }
 
+// US-wide scope: drop obviously non-US postings centrally instead of
+// maintaining include-lists of US cities per target. Substring hazards to
+// keep in mind if editing: no bare "mexico" (New Mexico), no "georgia",
+// no "ontario" (Ontario, CA).
+const NON_US_LOCATION =
+  /\b(?:united kingdom|london|canada|toronto|vancouver|montreal|ottawa|india|bangalore|bengaluru|hyderabad|mumbai|delhi|pune|chennai|gurgaon|noida|germany|berlin|munich|france|paris|ireland|dublin|netherlands|amsterdam|poland|warsaw|krakow|spain|madrid|barcelona|portugal|lisbon|italy|milan|rome|sweden|stockholm|switzerland|zurich|geneva|austria|vienna|belgium|brussels|denmark|copenhagen|norway|oslo|finland|helsinki|estonia|tallinn|czech|prague|romania|bucharest|hungary|budapest|greece|athens|israel|tel aviv|uae|dubai|abu dhabi|saudi|riyadh|singapore|japan|tokyo|osaka|korea|seoul|china|beijing|shanghai|shenzhen|hong kong|taiwan|taipei|australia|sydney|melbourne|brisbane|new zealand|auckland|brazil|sao paulo|são paulo|argentina|buenos aires|colombia|bogot[aá]|chile|santiago|costa rica|peru|lima|philippines|manila|vietnam|hanoi|ho chi minh|indonesia|jakarta|malaysia|kuala lumpur|thailand|bangkok|nigeria|lagos|kenya|nairobi|south africa|cape town|johannesburg|egypt|cairo|turkey|istanbul|ankara|ukraine|kyiv|serbia|belgrade|croatia|zagreb|bulgaria|sofia|slovakia|bratislava|slovenia|lithuania|vilnius|latvia|riga|luxembourg|mexico city|emea|europe|apac|latam)\b/i;
+
+export function isNonUsLocation(location: string | null | undefined): boolean {
+  if (!location) return false;
+  return NON_US_LOCATION.test(location);
+}
+
 // Exponential backoff with jitter. Respects Retry-After header on 429s.
 export async function withRetry<T>(
   fn: () => Promise<T>,

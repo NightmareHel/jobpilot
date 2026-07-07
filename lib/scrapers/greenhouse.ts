@@ -8,7 +8,7 @@ export interface ScraperConfig {
 }
 
 export interface RawJob {
-  source: 'greenhouse' | 'lever' | 'ashby' | 'workday' | 'custom';
+  source: 'greenhouse' | 'lever' | 'ashby' | 'workday' | 'custom' | 'simplify' | 'workable' | 'themuse' | 'smartrecruiters';
   external_id: string;
   title: string;
   company: string;
@@ -17,6 +17,12 @@ export interface RawJob {
   url: string;
   description: string | null;
   posted_at: string | null;
+  // Out-of-band knowledge from the source itself (e.g. Simplify curates
+  // new-grad roles and labels sponsorship). Applied on top of the classifier.
+  hints?: {
+    sponsor?: 'confirmed' | 'blocked';
+    entry?: boolean;
+  };
 }
 
 interface GHJob {

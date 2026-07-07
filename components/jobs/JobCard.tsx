@@ -54,11 +54,15 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const SOURCE_LABELS: Record<string, string> = {
-  greenhouse: 'GH',
-  lever:      'LV',
-  ashby:      'AS',
-  workday:    'WD',
-  custom:     'CX',
+  greenhouse:      'GH',
+  lever:           'LV',
+  ashby:           'AS',
+  workday:         'WD',
+  custom:          'CX',
+  simplify:        'SJ',
+  workable:        'WK',
+  themuse:         'MU',
+  smartrecruiters: 'SR',
 };
 
 export default function JobCard({ job, onStatusChange, onScore, onTailor, scoring, tailoring, tailoringLabel }: Props) {
