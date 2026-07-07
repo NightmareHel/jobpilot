@@ -135,6 +135,60 @@ function buildHTML(resumeText: string, p: ProfileRow): string {
 </html>`;
 }
 
+function buildCoverHTML(coverText: string, p: ProfileRow): string {
+  const contactParts = [p.email, p.phone, p.location]
+    .filter(Boolean)
+    .map(esc)
+    .join(' | ');
+
+  const paragraphs = coverText
+    .split(/\n\n+/)
+    .filter(Boolean)
+    .map((para) => `<p>${esc(para.trim())}</p>`)
+    .join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: Letter; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #000; }
+  .header { margin-bottom: 28pt; }
+  h1 { font-size: 15pt; font-weight: bold; margin-bottom: 4pt; }
+  .contact { font-size: 10pt; color: #444; }
+  p { margin-bottom: 12pt; text-align: justify; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>${esc(p.full_name ?? '')}</h1>
+    ${contactParts ? `<p class="contact">${contactParts}</p>` : ''}
+  </div>
+  ${paragraphs}
+</body>
+</html>`;
+}
+
+export async function generateCoverLetterPDF(coverText: string, p: ProfileRow): Promise<Buffer> {
+  const html = buildCoverHTML(coverText, p);
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle' });
+    await page.evaluateHandle('document.fonts.ready');
+    const pdf = await page.pdf({
+      format: 'Letter',
+      printBackground: true,
+      margin: { top: '1in', right: '1in', bottom: '1in', left: '1in' },
+    });
+    return Buffer.from(pdf);
+  } finally {
+    await browser.close();
+  }
+}
+
 export async function generateResumePDF(resumeText: string, p: ProfileRow): Promise<Buffer> {
   const html = buildHTML(resumeText, p);
   const browser = await chromium.launch({ headless: true });

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { applications, jobs } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
-import { TRANSITIONS } from '@/lib/application-state';
+import { TRANSITIONS, TERMINAL_STATUSES } from '@/lib/application-state';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,17 +28,37 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const allowed = TRANSITIONS[app.status] ?? [];
     if (!allowed.includes(body.status)) {
       return NextResponse.json({
-        error: `Invalid transition: ${app.status} → ${body.status}. Allowed: ${allowed.join(', ') || 'none (terminal)'}`,
+        error: `Invalid transition: ${app.status} -> ${body.status}. Allowed: ${allowed.join(', ') || 'none (terminal)'}`,
       }, { status: 400 });
     }
   }
 
   const now = new Date().toISOString();
   const updates: Record<string, string | null> = { updated_at: now };
-  if (body.status) updates.status = body.status;
-  if ('notes' in body) updates.notes = body.notes;
+  if (body.status)        updates.status = body.status;
+  if ('notes' in body)    updates.notes = body.notes;
+  if ('resume_text' in body)  updates.resume_text = body.resume_text;
+  if ('cover_letter' in body) updates.cover_letter = body.cover_letter;
 
   await db.update(applications).set(updates).where(eq(applications.id, id));
   const [updated] = await db.select().from(applications).where(eq(applications.id, id));
   return NextResponse.json({ application: updated });
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const db = getDb();
+
+  const [app] = await db.select().from(applications).where(eq(applications.id, id));
+  if (!app) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+  if (app.status !== 'draft' && !TERMINAL_STATUSES.has(app.status)) {
+    return NextResponse.json(
+      { error: `Cannot delete application in status '${app.status}'. Only draft and terminal statuses can be deleted.` },
+      { status: 400 }
+    );
+  }
+
+  await db.delete(applications).where(eq(applications.id, id));
+  return NextResponse.json({ ok: true });
 }

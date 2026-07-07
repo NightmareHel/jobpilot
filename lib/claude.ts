@@ -201,6 +201,59 @@ export interface ScoreResult {
   seniority: 'entry' | 'mid' | 'senior';
 }
 
+export interface CritiqueIssue {
+  severity: 'high' | 'medium' | 'low';
+  issue: string;
+  fix: string;
+}
+
+export interface CritiqueResult {
+  ats_score: number;
+  issues: CritiqueIssue[];
+  verdict: string;
+}
+
+export async function critiqueApplication(
+  resumeText: string,
+  jdText: string
+): Promise<CritiqueResult> {
+  const msg = await client().chat.completions.create({
+    model: MODEL,
+    max_tokens: 1024,
+    messages: [
+      {
+        role: 'user',
+        content: `You are an ATS expert reviewing a tailored resume for a specific job. Return JSON only.
+
+JOB DESCRIPTION:
+${jdText}
+
+TAILORED RESUME:
+${resumeText}
+
+Return ONLY valid JSON:
+{
+  "ats_score": 82,
+  "issues": [
+    { "severity": "high", "issue": "Description of the problem", "fix": "Specific actionable fix" }
+  ],
+  "verdict": "One sentence overall assessment"
+}
+
+Rules:
+- ats_score: 0-100, measures keyword alignment, formatting signals, and clarity
+- severity: "high" = will cause ATS rejection, "medium" = noticeable gap, "low" = polish item
+- Return 3-6 issues only, prioritize by severity
+- verdict: 15 words max`,
+      },
+    ],
+  });
+
+  const content = msg.choices[0].message.content;
+  if (!content) throw new Error('Empty model response');
+  return extractJSON(content) as CritiqueResult;
+}
+
 export async function scoreJob(profileText: string, jobDescription: string): Promise<ScoreResult> {
   const msg = await client().chat.completions.create({
     model: MODEL,

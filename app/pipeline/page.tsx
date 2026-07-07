@@ -12,12 +12,22 @@ interface Application {
   status: string;
   resume_text: string | null;
   cover_letter: string | null;
+  keyword_gap: string | null;
   notes: string | null;
   created_at: string;
   applied_at: string | null;
 }
 
-interface Job { id: string; title: string; company: string; source: string; url: string }
+interface Job {
+  id: string;
+  title: string;
+  company: string;
+  source: string;
+  url: string;
+  sponsor_status?: string | null;
+  sponsor_evidence?: string | null;
+  sponsor_lca_count?: number | null;
+}
 
 export default function PipelinePage() {
   const { addToast } = useToast();

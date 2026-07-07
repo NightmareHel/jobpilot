@@ -8,6 +8,7 @@ interface Application {
   status: string;
   resume_text: string | null;
   cover_letter: string | null;
+  keyword_gap: string | null;
   notes: string | null;
   created_at: string;
   applied_at: string | null;
@@ -19,6 +20,9 @@ interface Job {
   company: string;
   source: string;
   url: string;
+  sponsor_status?: string | null;
+  sponsor_evidence?: string | null;
+  sponsor_lca_count?: number | null;
 }
 
 interface Props {
@@ -47,6 +51,7 @@ export default function KanbanBoard({ applications, jobs, onStatusChange, onAppr
   for (const col of COLUMNS) byStatus[col] = [];
   for (const app of applications) {
     if (byStatus[app.status]) byStatus[app.status].push(app);
+    else byStatus['draft']?.push(app);
   }
 
   const nonEmpty = COLUMNS.filter((c) => byStatus[c].length > 0 || ['draft', 'pending', 'submitted'].includes(c));
@@ -54,13 +59,13 @@ export default function KanbanBoard({ applications, jobs, onStatusChange, onAppr
   return (
     <div className="flex gap-4 overflow-x-auto pb-4">
       {nonEmpty.map((col) => (
-        <div key={col} className="flex-shrink-0 w-72">
+        <div key={col} className="flex-shrink-0 w-64">
           <div className={`border-t-2 ${COLUMN_COLORS[col]} mb-3 pt-2`}>
-            <h3 className="text-zinc-300 text-xs font-semibold uppercase tracking-wide">
-              {col} <span className="text-zinc-500">({byStatus[col].length})</span>
+            <h3 className="text-zinc-400 text-xs font-semibold uppercase tracking-wide">
+              {col.replace('_', ' ')} <span className="text-zinc-600 tabular-nums">({byStatus[col].length})</span>
             </h3>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {byStatus[col].map((app) => (
               <ApplicationCard
                 key={app.id}
@@ -71,7 +76,7 @@ export default function KanbanBoard({ applications, jobs, onStatusChange, onAppr
               />
             ))}
             {byStatus[col].length === 0 && (
-              <p className="text-zinc-600 text-xs">Empty</p>
+              <p className="text-zinc-700 text-xs px-1">Empty</p>
             )}
           </div>
         </div>
