@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import type { profile } from './schema';
 import type { ResumeTailoring, ExpEntry, ProjEntry } from './profile-formatter';
 
@@ -11,6 +12,8 @@ function parseArr<T>(json: string | null): T[] {
 
 let _client: OpenAI | null = null;
 
+// Groq (OpenAI-compatible) client — still owns the high-volume calls: scoring
+// and email classification. Their free-tier quota absorbs the volume.
 function client(): OpenAI {
   if (!_client) {
     _client = new OpenAI({
@@ -22,6 +25,17 @@ function client(): OpenAI {
 }
 
 const MODEL = 'llama-3.3-70b-versatile';
+
+let _anthropic: Anthropic | null = null;
+
+// Anthropic client (reads ANTHROPIC_API_KEY from env). Owns the quality-sensitive
+// generation: resume tailoring and cover letters.
+function anthropic(): Anthropic {
+  if (!_anthropic) _anthropic = new Anthropic();
+  return _anthropic;
+}
+
+const SONNET = 'claude-sonnet-4-6';
 
 export interface KeywordGapResult {
   mustHave: string[];
@@ -199,14 +213,14 @@ The experience array must have exactly ${exp.length} item(s) and projects exactl
     const content_ = strict
       ? `${basePrompt}\n\nSTRICT RETRY: your previous attempt leaked template placeholders or the banned formula words. Output natural prose bullets only, with no brackets and none of the banned words.`
       : basePrompt;
-    const msg = await client().chat.completions.create({
-      model: MODEL,
+    const msg = await anthropic().messages.create({
+      model: SONNET,
       max_tokens: 3072,
       messages: [{ role: 'user', content: content_ }],
     });
-    const content = msg.choices[0].message.content;
-    if (!content) throw new Error('Empty model response');
-    return extractJSON(content) as ResumeTailoring;
+    const block = msg.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+    if (!block?.text) throw new Error('Empty model response');
+    return extractJSON(block.text) as ResumeTailoring;
   };
 
   // Detects scaffold/template leakage in a generated string.
@@ -253,15 +267,9 @@ export async function generateCoverLetter(
   jdText: string,
   onDelta?: (text: string) => void
 ): Promise<string> {
-  const messages = [
-      {
-        role: 'system',
-        content:
-          'You are a professional cover letter writer. Write targeted, concise cover letters in plain text. 3-4 paragraphs, under 350 words. No salutation header, no "Dear Hiring Manager" line. Start directly with the opening paragraph.',
-      },
-      {
-        role: 'user',
-        content: `Write a cover letter for the following candidate applying to this role.
+  const system =
+    'You are a professional cover letter writer. Write targeted, concise cover letters in plain text. 3-4 paragraphs, under 350 words. No salutation header, no "Dear Hiring Manager" line. Start directly with the opening paragraph.';
+  const userContent = `Write a cover letter for the following candidate applying to this role.
 
 CANDIDATE PROFILE:
 ${profileText}
@@ -271,40 +279,34 @@ ROLE: ${jobTitle} at ${company}
 JOB DESCRIPTION:
 ${jdText}
 
-Write the cover letter now. Plain text only, no markdown, no headers.`,
-      },
-    ] as const;
+Write the cover letter now. Plain text only, no markdown, no headers.`;
 
   if (onDelta) {
-    const stream = await client().chat.completions.create({
-      model: MODEL,
+    const stream = anthropic().messages.stream({
+      model: SONNET,
       temperature: 0.4,
       max_tokens: 700,
-      stream: true,
-      messages: [...messages],
+      system,
+      messages: [{ role: 'user', content: userContent }],
     });
-    let full = '';
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0]?.delta?.content ?? '';
-      if (delta) {
-        full += delta;
-        onDelta(delta);
-      }
-    }
-    if (!full) throw new Error('Empty model response for cover letter');
-    return full.trim();
+    stream.on('text', (delta) => onDelta(delta));
+    const final = await stream.finalMessage();
+    const block = final.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+    if (!block?.text) throw new Error('Empty model response for cover letter');
+    return block.text.trim();
   }
 
-  const msg = await client().chat.completions.create({
-    model: MODEL,
+  const msg = await anthropic().messages.create({
+    model: SONNET,
     temperature: 0.4,
     max_tokens: 700,
-    messages: [...messages],
+    system,
+    messages: [{ role: 'user', content: userContent }],
   });
 
-  const content = msg.choices[0].message.content;
-  if (!content) throw new Error('Empty model response for cover letter');
-  return content.trim();
+  const block = msg.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+  if (!block?.text) throw new Error('Empty model response for cover letter');
+  return block.text.trim();
 }
 
 export interface ScoreResult {
