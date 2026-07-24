@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "dev:worker": "tsx watch worker/scraper.ts",
-    "dev:all": "concurrently \"next dev\" \"npm run dev:worker\""
+    "dev:score": "tsx worker/score.ts",
+    "dev:all": "concurrently -n web,scrape,score \"next dev\" \"npm run dev:worker\" \"npm run dev:score\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",
