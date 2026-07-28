@@ -64,7 +64,7 @@ function fmtGradDate(s: string | null | undefined): string {
 // Groups a flat skills list into ordered, labeled lines for the resume. Unknown
 // skills fall into "Additional" so nothing is silently dropped.
 const SKILL_GROUPS: { label: string; members: string[] }[] = [
-  { label: 'AI/ML', members: ['LangChain', 'LangGraph', 'Groq API', 'Claude API (Anthropic)', 'Gemini API', 'scikit-learn', 'Multi-agent systems', 'RAG pipelines', 'Vector embeddings', 'ML pipeline engineering', 'Prompt engineering', 'Gradient Boosting', 'pandas'] },
+  { label: 'AI/ML', members: ['LangChain', 'LangGraph', 'Groq API', 'Claude API (Anthropic)', 'Gemini API', 'scikit-learn', 'Multi-agent systems', 'RAG pipelines', 'Vector embeddings', 'ML pipeline engineering', 'Prompt engineering', 'Gradient Boosting', 'pandas', 'NumPy'] },
   { label: 'Languages', members: ['Python', 'TypeScript', 'JavaScript', 'Java', 'SQL'] },
   { label: 'Frameworks & Backend', members: ['Next.js', 'React', 'React Native', 'Node.js', 'Express', 'FastAPI', 'Flask', 'Streamlit', 'REST APIs', 'SSE streaming', 'Drizzle ORM', 'SQLite', 'PostgreSQL'] },
   { label: 'Tools & Infra', members: ['Playwright', 'Git', 'GitHub', 'Vercel', 'Google Maps API', 'Canvas API', 'OAuth 2.0'] },
