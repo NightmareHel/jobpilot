@@ -5,9 +5,11 @@ export interface JobFiltersState {
   status: string;
   minScore: number;
   search: string;
+  location: string;
   sort: string;
   hideBlocked: boolean;
   entryOnly: boolean;
+  remoteOnly: boolean;
   sponsorStatus: string;
 }
 
@@ -106,6 +108,17 @@ export default function JobFilters({ filters, onChange }: Props) {
         />
       </div>
 
+      <div className="flex flex-col gap-1 w-40">
+        <label className="font-mono text-[11px] uppercase tracking-[0.14em] text-faint">Location</label>
+        <input
+          type="text"
+          placeholder="City, state, remote..."
+          className="bg-surface border border-seam text-graphite rounded-[8px] px-2 py-1.5 text-sm placeholder-faint focus:outline-none focus:border-bronze"
+          value={filters.location}
+          onChange={(e) => set('location', e.target.value)}
+        />
+      </div>
+
       <div className="flex flex-col gap-1 flex-1 min-w-48">
         <label className="font-mono text-[11px] uppercase tracking-[0.14em] text-faint">Search</label>
         <input
@@ -118,6 +131,15 @@ export default function JobFilters({ filters, onChange }: Props) {
       </div>
 
       <div className="flex gap-3 items-center">
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={filters.remoteOnly}
+            onChange={(e) => set('remoteOnly', e.target.checked)}
+            className="accent-[#8a7a5c] w-4 h-4 rounded"
+          />
+          <span className="text-xs text-stone">Remote only</span>
+        </label>
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"

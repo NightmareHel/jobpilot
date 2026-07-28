@@ -11,10 +11,12 @@ export async function GET(req: NextRequest) {
   const status        = searchParams.get('status');
   const minScore      = searchParams.get('minScore');
   const search        = searchParams.get('search');
+  const location      = searchParams.get('location');
   const sort          = searchParams.get('sort') ?? 'scraped_at';
   const excludeCustom = searchParams.get('excludeCustom') === 'true';
   const hideBlocked   = searchParams.get('hideBlocked') === 'true';
   const entryOnly     = searchParams.get('entryOnly') === 'true';
+  const remoteOnly    = searchParams.get('remote') === 'true';
   const sponsorStatus = searchParams.get('sponsorStatus');
   const page          = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
   const limit         = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10)));
@@ -29,6 +31,8 @@ export async function GET(req: NextRequest) {
     const term = `%${search}%`;
     filters.push(or(like(jobs.title, term), like(jobs.company, term)));
   }
+  if (location)      filters.push(like(jobs.location, `%${location}%`));
+  if (remoteOnly)    filters.push(eq(jobs.remote, 1));
   if (sort === 'score_desc' || sort === 'score_asc') filters.push(isNotNull(jobs.fit_score));
   if (hideBlocked)   filters.push(sql`(${jobs.sponsor_status} IS NULL OR ${jobs.sponsor_status} NOT IN ('blocked', 'unlikely'))`);
   if (entryOnly)     filters.push(eq(jobs.entry_level, 1));

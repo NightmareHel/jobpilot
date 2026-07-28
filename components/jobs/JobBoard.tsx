@@ -42,7 +42,7 @@ export default function JobBoard({ onTailor }: Props) {
   const [tailorLabel, setTailorLabel] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batch, setBatch] = useState<{ done: number; total: number; label: string } | null>(null);
-  const FILTER_DEFAULTS: JobFiltersState = { source: '', status: '', minScore: 0, search: '', sort: 'scraped_at', hideBlocked: false, entryOnly: false, sponsorStatus: '' };
+  const FILTER_DEFAULTS: JobFiltersState = { source: '', status: '', minScore: 0, search: '', location: '', sort: 'scraped_at', hideBlocked: false, entryOnly: false, remoteOnly: false, sponsorStatus: '' };
 
   const [filters, setFilters] = useState<JobFiltersState>(() => {
     if (typeof window !== 'undefined') {
@@ -62,9 +62,11 @@ export default function JobBoard({ onTailor }: Props) {
     if (filters.status)         params.set('status', filters.status);
     if (filters.minScore > 0)   params.set('minScore', String(filters.minScore));
     if (filters.search)         params.set('search', filters.search);
+    if (filters.location)       params.set('location', filters.location);
     if (filters.sort)           params.set('sort', filters.sort);
     if (filters.hideBlocked)    params.set('hideBlocked', 'true');
     if (filters.entryOnly)      params.set('entryOnly', 'true');
+    if (filters.remoteOnly)     params.set('remote', 'true');
     if (filters.sponsorStatus)  params.set('sponsorStatus', filters.sponsorStatus);
     params.set('limit', '100');
 
