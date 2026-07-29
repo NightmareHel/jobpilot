@@ -36,6 +36,7 @@ function anthropic(): Anthropic {
 }
 
 const SONNET = 'claude-sonnet-4-6';
+const HAIKU = 'claude-haiku-4-5';
 
 export interface KeywordGapResult {
   mustHave: string[];
@@ -68,8 +69,8 @@ export async function analyzeKeywordGap(
   resumeText: string,
   jdText: string
 ): Promise<KeywordGapResult> {
-  const msg = await client().chat.completions.create({
-    model: MODEL,
+  const msg = await anthropic().messages.create({
+    model: HAIKU,
     max_tokens: 2048,
     messages: [
       {
@@ -102,9 +103,9 @@ Rules:
     ],
   });
 
-  const content = msg.choices[0].message.content;
-  if (!content) throw new Error('Empty model response');
-  return extractJSON(content) as KeywordGapResult;
+  const block = msg.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+  if (!block?.text) throw new Error('Empty model response');
+  return extractJSON(block.text) as KeywordGapResult;
 }
 
 export async function rewriteResume(
