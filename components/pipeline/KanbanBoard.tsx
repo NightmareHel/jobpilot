@@ -37,6 +37,7 @@ interface Props {
   onStatusChange: (id: string, status: string, notes?: string) => void;
   onRemove: (id: string) => void;
   onTailorStaged: (id: string) => void;
+  onMarkStagedSubmitted: (id: string) => void;
   onUnstage: (id: string) => void;
 }
 
@@ -49,7 +50,7 @@ const COL = 'flex-shrink-0 w-80 bg-sunken rounded-[14px] p-2';
 
 export default function KanbanBoard({
   applications, jobs, stagingJobs, tailoringId, tailoringLabel,
-  onStatusChange, onRemove, onTailorStaged, onUnstage,
+  onStatusChange, onRemove, onTailorStaged, onMarkStagedSubmitted, onUnstage,
 }: Props) {
   const byStatus: Record<string, Application[]> = {};
   for (const col of COLUMNS) byStatus[col] = [];
@@ -87,6 +88,7 @@ export default function KanbanBoard({
                   <StagingCard
                     job={job}
                     onTailor={onTailorStaged}
+                    onMarkSubmitted={onMarkStagedSubmitted}
                     onUnstage={onUnstage}
                     tailoring={tailoringId === job.id}
                     tailoringLabel={tailoringId === job.id ? tailoringLabel ?? undefined : undefined}

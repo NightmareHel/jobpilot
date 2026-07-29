@@ -119,6 +119,33 @@ export default function PipelinePage() {
     }
   };
 
+  // Manual apply without tailoring: create a tracking application and jump it
+  // straight to submitted (stamps applied_at + manual method server-side).
+  const handleMarkStagedSubmitted = async (jobId: string) => {
+    const res = await fetch('/api/applications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId }),
+    });
+    if (!res.ok) {
+      const { error: err } = await res.json().catch(() => ({}));
+      addToast((err as string) ?? 'Failed to create application', 'error');
+      return;
+    }
+    const { application } = await res.json();
+    const patched = await fetch(`/api/applications/${application.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'submitted' }),
+    });
+    if (!patched.ok) {
+      addToast('Created draft but could not mark submitted', 'error');
+    } else {
+      addToast('Moved to submitted', 'success');
+    }
+    await load();
+  };
+
   const handleUnstage = async (jobId: string) => {
     const res = await fetch(`/api/jobs/${jobId}`, {
       method: 'PATCH',
@@ -166,6 +193,7 @@ export default function PipelinePage() {
           onStatusChange={handleStatusChange}
           onRemove={handleRemove}
           onTailorStaged={handleTailorStaged}
+          onMarkStagedSubmitted={handleMarkStagedSubmitted}
           onUnstage={handleUnstage}
         />
       )}

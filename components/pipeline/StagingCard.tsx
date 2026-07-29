@@ -17,12 +17,13 @@ export interface StagingJob {
 interface Props {
   job: StagingJob;
   onTailor: (id: string) => void;
+  onMarkSubmitted: (id: string) => void;
   onUnstage: (id: string) => void;
   tailoring?: boolean;
   tailoringLabel?: string;
 }
 
-export default function StagingCard({ job, onTailor, onUnstage, tailoring, tailoringLabel }: Props) {
+export default function StagingCard({ job, onTailor, onMarkSubmitted, onUnstage, tailoring, tailoringLabel }: Props) {
   const sponsor = job.sponsor_status;
 
   return (
@@ -61,6 +62,15 @@ export default function StagingCard({ job, onTailor, onUnstage, tailoring, tailo
         >
           {tailoring ? tailoringLabel ?? 'Tailoring...' : 'Tailor'}
         </button>
+        {!tailoring && (
+          <button
+            onClick={() => onMarkSubmitted(job.id)}
+            className={`text-xs px-2 py-1 ${BTN.secondary}`}
+            title="Applied by hand — move straight to Submitted (no tailoring)"
+          >
+            Submitted
+          </button>
+        )}
         <a
           href={job.url}
           target="_blank"
