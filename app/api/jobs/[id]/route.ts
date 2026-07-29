@@ -3,7 +3,7 @@ import { getDb } from '@/lib/db';
 import { jobs } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
-const VALID_STATUSES = ['new', 'reviewed', 'queued', 'applied', 'archived'];
+const VALID_STATUSES = ['new', 'reviewed', 'queued', 'staged', 'applied', 'archived'];
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

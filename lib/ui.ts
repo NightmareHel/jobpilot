@@ -36,6 +36,7 @@ export const STATUS_COLORS: Record<string, string> = {
 
 // Solid dots for kanban column headers + funnel stages
 export const STATUS_DOT: Record<string, string> = {
+  staging:         'bg-indigo-500',
   draft:           'bg-stone-400',
   pending:         'bg-amber-500',
   submitted:       'bg-blue-500',
@@ -65,6 +66,7 @@ export const JOB_STATUS_COLORS: Record<string, string> = {
   new:      'bg-sunken text-graphite ring-1 ring-seam',
   reviewed: 'bg-blue-600/10 text-blue-800 ring-1 ring-blue-600/25',
   queued:   'bg-amber-600/10 text-amber-800 ring-1 ring-amber-600/25',
+  staged:   'bg-indigo-600/10 text-indigo-800 ring-1 ring-indigo-600/25',
   applied:  'bg-green-700/10 text-green-800 ring-1 ring-green-700/25',
   archived: 'bg-sunken text-faint ring-1 ring-hairline',
 };

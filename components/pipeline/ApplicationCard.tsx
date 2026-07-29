@@ -30,7 +30,6 @@ interface Props {
   application: Application;
   job: Job | null;
   onStatusChange: (id: string, status: string, notes?: string) => void;
-  onApprove: (id: string) => void;
   onRemove: (id: string) => void;
 }
 
@@ -87,7 +86,7 @@ export default function ApplicationCard({ application, job, onStatusChange, onRe
             className={`text-xs px-2.5 py-1 ${BTN.primary}`}
             title="I submitted this by hand; move to submitted"
           >
-            Mark Submitted
+            Move to Submitted
           </button>
         )}
         {application.resume_text && (

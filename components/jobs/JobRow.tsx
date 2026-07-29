@@ -31,6 +31,7 @@ interface Props {
   onStatusChange: (id: string, status: string) => void;
   onScore: (id: string) => void;
   onTailor: (id: string) => void;
+  onStage?: (id: string) => void;
   scoring?: boolean;
   tailoring?: boolean;
   tailoringLabel?: string;
@@ -63,7 +64,7 @@ function sponsorShort(status: string, lca: number | null): string {
   return SPONSOR_LABEL[status] ?? status;
 }
 
-export default function JobRow({ job, onStatusChange, onScore, onTailor, scoring, tailoring, tailoringLabel, selected, onSelectToggle }: Props) {
+export default function JobRow({ job, onStatusChange, onScore, onTailor, onStage, scoring, tailoring, tailoringLabel, selected, onSelectToggle }: Props) {
   const [open, setOpen] = useState(false);
   const sponsor = job.sponsor_status;
 
@@ -125,6 +126,19 @@ export default function JobRow({ job, onStatusChange, onScore, onTailor, scoring
           >
             {scoring ? '...' : 'Score'}
           </button>
+          {onStage && (
+            job.status === 'staged' ? (
+              <span className="text-xs px-2 py-1 text-indigo-700 font-medium">Staged</span>
+            ) : (
+              <button
+                onClick={() => onStage(job.id)}
+                className={`text-xs px-2 py-1 ${BTN.secondary}`}
+                title="Send to staging to tailor later"
+              >
+                Stage
+              </button>
+            )
+          )}
           <button
             onClick={() => onTailor(job.id)}
             disabled={tailoring}
