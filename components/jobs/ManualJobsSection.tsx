@@ -85,6 +85,11 @@ export default function ManualJobsSection({ onTailor }: Props) {
     setJobs((prev) => prev.map((j) => j.id === id ? { ...j, status } : j));
   };
 
+  const handleStage = (id: string) => {
+    handleStatusChange(id, 'staged');
+    addToast('Sent to staging', 'success');
+  };
+
   const handleScore = async (id: string) => {
     setScoringId(id);
     const res = await fetch('/api/score', {
@@ -158,6 +163,7 @@ export default function ManualJobsSection({ onTailor }: Props) {
                   job={job}
                   onStatusChange={handleStatusChange}
                   onScore={handleScore}
+                  onStage={handleStage}
                   onTailor={onTailor ? () => handleTailorInternal(job.id) : () => {}}
                   scoring={scoringId === job.id}
                   tailoring={tailoringId === job.id}
