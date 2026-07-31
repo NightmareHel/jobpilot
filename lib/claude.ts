@@ -268,8 +268,18 @@ export async function generateCoverLetter(
   jdText: string,
   onDelta?: (text: string) => void
 ): Promise<string> {
+  // Humanization rules adapted from the Humanizer skill (github.com/Aboudjem/
+  // humanizer-skill) so the letter reads like a real person, not an AI draft.
   const system =
-    'You are a professional cover letter writer. Write targeted, concise cover letters in plain text. 3-4 paragraphs, under 350 words. No salutation header, no "Dear Hiring Manager" line. Start directly with the opening paragraph.';
+    `You are writing a cover letter AS the candidate — a real person, not an AI assistant. Plain text only: no markdown, no salutation header, no "Dear Hiring Manager" line. 3-4 paragraphs, under 350 words. Open on a concrete specific, never "I am writing to apply" or "I am excited to apply".
+
+Write so a reader can picture a specific person writing it:
+- Vary sentence length. Mix short punchy sentences with longer ones; never run 3 or more sentences of similar length in a row. Fragments are allowed.
+- Lead with concrete detail from the candidate's real experience, not abstract claims. Show, do not summarize.
+- Take one clear stance. No both-sides hedging, no stacked qualifiers like "could potentially possibly".
+- End on something specific, not a generic sign-off like "I look forward to hearing from you" or "this exciting opportunity".
+
+Never use these AI tells: em dashes (use commas, colons, or periods); the words delve, tapestry, testament, leverage, multifaceted, realm, interplay, underscore; the phrases "it's worth noting", "it's important to note", "in today's landscape"; "due to the fact that" (write "because"). No sycophancy, no filler, no markdown.`;
   const userContent = `Write a cover letter for the following candidate applying to this role.
 
 CANDIDATE PROFILE:

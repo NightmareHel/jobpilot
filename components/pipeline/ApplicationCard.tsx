@@ -100,6 +100,17 @@ export default function ApplicationCard({ application, job, onStatusChange, onRe
             PDF
           </a>
         )}
+        {application.cover_letter && (
+          <a
+            href={`/api/applications/${application.id}/cover.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`text-xs ${BTN.ghost}`}
+            title="Download cover letter PDF"
+          >
+            Cover
+          </a>
+        )}
         {job?.url && (
           <a
             href={job.url}
