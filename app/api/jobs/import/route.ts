@@ -20,6 +20,13 @@ function parseJobMeta(rawTitle: string, ogSiteName: string | null): { title: str
     }
   }
 
+  // Greenhouse/Lever application-form pages title themselves
+  // "Job Application for {role} at {company}".
+  const jobAppMatch = /^Job Application for (.+?) at (.+)$/i.exec(cleaned);
+  if (jobAppMatch) {
+    return { title: jobAppMatch[1].trim(), company: ogSiteName ?? jobAppMatch[2].trim() };
+  }
+
   if (cleaned.includes(' | ')) {
     const parts = cleaned.split(' | ');
     return { title: parts[0].trim(), company: ogSiteName ?? parts.slice(1).join(' | ').trim() };
