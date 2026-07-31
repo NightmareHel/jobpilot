@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import JobRow from './JobRow';
 import JobFilters, { type JobFiltersState } from './JobFilters';
 import { useToast } from '@/lib/toast';
@@ -42,6 +42,9 @@ export default function JobBoard({ onTailor }: Props) {
   const [tailorLabel, setTailorLabel] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batch, setBatch] = useState<{ done: number; total: number; label: string } | null>(null);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const FILTER_DEFAULTS: JobFiltersState = { source: '', status: '', minScore: 0, search: '', location: '', sort: 'scraped_at', hideBlocked: false, entryOnly: false, remoteOnly: false, sponsorStatus: '' };
 
   const [filters, setFilters] = useState<JobFiltersState>(() => {
@@ -54,8 +57,7 @@ export default function JobBoard({ onTailor }: Props) {
     return FILTER_DEFAULTS;
   });
 
-  const loadJobs = useCallback(async () => {
-    setLoading(true);
+  const fetchPage = useCallback(async (pageNum: number): Promise<Job[]> => {
     const params = new URLSearchParams();
     params.set('excludeCustom', 'true');
     if (filters.source)         params.set('source', filters.source);
@@ -68,16 +70,48 @@ export default function JobBoard({ onTailor }: Props) {
     if (filters.entryOnly)      params.set('entryOnly', 'true');
     if (filters.remoteOnly)     params.set('remote', 'true');
     if (filters.sponsorStatus)  params.set('sponsorStatus', filters.sponsorStatus);
+    params.set('page', String(pageNum));
     params.set('limit', '100');
 
     const res = await fetch(`/api/jobs?${params}`);
     const data = await res.json();
-    setJobs(data.jobs ?? []);
     setTotal(data.total ?? 0);
-    setLoading(false);
+    return data.jobs ?? [];
   }, [filters]);
 
+  // Reload from page 1 (on filter change or scrape refresh).
+  const loadJobs = useCallback(async () => {
+    setLoading(true);
+    setPage(1);
+    const rows = await fetchPage(1);
+    setJobs(rows);
+    setLoading(false);
+  }, [fetchPage]);
+
   useEffect(() => { loadJobs(); }, [loadJobs]);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || loading) return;
+    const next = page + 1;
+    setLoadingMore(true);
+    const rows = await fetchPage(next);
+    setJobs((prev) => [...prev, ...rows]);
+    setPage(next);
+    setLoadingMore(false);
+  }, [page, loadingMore, loading, fetchPage]);
+
+  // Infinite scroll: auto-load the next page as the sentinel nears the viewport.
+  const hasMore = jobs.length < total;
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      { rootMargin: '600px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [hasMore, loadMore]);
 
   const handleFiltersChange = (next: JobFiltersState) => {
     setFilters(next);
@@ -266,23 +300,38 @@ export default function JobBoard({ onTailor }: Props) {
       ) : jobs.length === 0 ? (
         <p className="text-stone text-sm py-8 text-center">No jobs found. Try scraping or adjusting filters.</p>
       ) : (
-        <div className="flex flex-col gap-2">
-          {jobs.map((job) => (
-            <JobRow
-              key={job.id}
-              job={job}
-              onStatusChange={handleStatusChange}
-              onScore={handleScore}
-              onStage={handleStage}
-              onTailor={onTailor ? () => handleTailorInternal(job.id) : () => {}}
-              scoring={scoringId === job.id}
-              tailoring={tailoringId === job.id}
-              tailoringLabel={tailoringId === job.id ? tailorLabel ?? undefined : undefined}
-              selected={selected.has(job.id)}
-              onSelectToggle={toggleSelect}
-            />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-2">
+            {jobs.map((job) => (
+              <JobRow
+                key={job.id}
+                job={job}
+                onStatusChange={handleStatusChange}
+                onScore={handleScore}
+                onStage={handleStage}
+                onTailor={onTailor ? () => handleTailorInternal(job.id) : () => {}}
+                scoring={scoringId === job.id}
+                tailoring={tailoringId === job.id}
+                tailoringLabel={tailoringId === job.id ? tailorLabel ?? undefined : undefined}
+                selected={selected.has(job.id)}
+                onSelectToggle={toggleSelect}
+              />
+            ))}
+          </div>
+          <div ref={sentinelRef} className="h-px" />
+          <div className="flex items-center justify-center gap-3 py-4">
+            <span className="text-xs text-stone tabular-nums">Showing {jobs.length} of {total}</span>
+            {hasMore && (
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className={`text-xs px-3 py-1.5 disabled:opacity-50 ${BTN.secondary}`}
+              >
+                {loadingMore ? 'Loading...' : 'Load more'}
+              </button>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
